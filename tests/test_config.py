@@ -8,9 +8,6 @@ from src.kafka_config import (
     ConsumerSettings,
     KafkaSettings,
     MongoSettings,
-    get_consumer_settings,
-    get_kafka_settings,
-    get_mongo_settings,
     sasl_conf,
     schema_config,
 )

@@ -1,5 +1,6 @@
-from setuptools import setup,find_packages
 from typing import List
+
+from setuptools import find_packages, setup
 
 #Declaring variables for setup functions
 PROJECT_NAME="kafka"
@@ -33,6 +34,6 @@ name=PROJECT_NAME,
 version=VERSION,
 author=AUTHOR,
 description=DESCRIPTION,
-packages=find_packages(), 
+packages=find_packages(),
 install_requires=get_requirements_list()
 )

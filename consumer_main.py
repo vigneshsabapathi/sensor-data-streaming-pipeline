@@ -1,9 +1,9 @@
 import logging
 import os
 
-from src.kafka_logger import setup_logging
-from src.kafka_consumer.json_consumer import consume_topic
 from src.constant import SAMPLE_DIR
+from src.kafka_consumer.json_consumer import consume_topic
+from src.kafka_logger import setup_logging
 
 logger = logging.getLogger(__name__)
 

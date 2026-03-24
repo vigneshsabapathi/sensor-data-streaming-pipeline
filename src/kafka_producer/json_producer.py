@@ -2,14 +2,14 @@ import logging
 from uuid import uuid4
 
 from confluent_kafka import Producer
-from confluent_kafka.serialization import StringSerializer, SerializationContext, MessageField
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.json_schema import JSONSerializer
+from confluent_kafka.serialization import MessageField, SerializationContext, StringSerializer
 
-from src.kafka_config import sasl_conf, schema_config
-from src.entity.sensor_record import record_to_dict
 from src.entity.csv_reader import read_csv_records
 from src.entity.schema_manager import generate_json_schema
+from src.entity.sensor_record import record_to_dict
+from src.kafka_config import sasl_conf, schema_config
 
 logger = logging.getLogger(__name__)
 

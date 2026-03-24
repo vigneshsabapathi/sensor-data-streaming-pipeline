@@ -1,9 +1,9 @@
 import logging
 import os
 
+from src.constant import SAMPLE_DIR
 from src.kafka_logger import setup_logging
 from src.kafka_producer.json_producer import produce_data_from_file
-from src.constant import SAMPLE_DIR
 
 logger = logging.getLogger(__name__)
 

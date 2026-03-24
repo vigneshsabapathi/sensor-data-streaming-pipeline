@@ -1,0 +1,16 @@
+.git
+.gitignore
+.claude/
+.env
+.env.*
+!.env.example
+venv/
+*.egg-info/
+__pycache__/
+.pytest_cache/
+logs/
+*.pyc
+*.log
+.ipynb_checkpoints/
+Untitled.ipynb
+CLAUDE.md

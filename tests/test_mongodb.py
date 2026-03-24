@@ -2,8 +2,6 @@
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 
 class TestMongodbOperationContextManager:
     """Test that MongodbOperation follows the context manager protocol."""

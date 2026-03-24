@@ -1,11 +1,9 @@
 """Shared fixtures for the ml-data-pipeline test suite."""
 
 import os
-import tempfile
 import textwrap
 
 import pytest
-
 
 SAMPLE_CSV_PATH = os.path.join(
     os.path.dirname(__file__),

@@ -11,14 +11,14 @@ import signal
 import threading
 
 from confluent_kafka import Consumer
-from confluent_kafka.serialization import SerializationContext, MessageField
 from confluent_kafka.schema_registry.json_schema import JSONDeserializer
+from confluent_kafka.serialization import MessageField, SerializationContext
 from pymongo.errors import PyMongoError
 
-from src.entity.sensor_record import SensorRecord
-from src.entity.schema_manager import generate_json_schema
-from src.kafka_config import sasl_conf, get_consumer_settings, get_mongo_settings
 from src.database.mongodb import MongodbOperation
+from src.entity.schema_manager import generate_json_schema
+from src.entity.sensor_record import SensorRecord
+from src.kafka_config import get_consumer_settings, get_mongo_settings, sasl_conf
 from src.kafka_producer.dlq_producer import DLQProducer
 from src.utils.retry import retry_with_backoff
 

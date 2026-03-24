@@ -1,6 +1,7 @@
 import logging
-from pydantic_settings import BaseSettings
+
 from pydantic import Field
+from pydantic_settings import BaseSettings
 
 logger = logging.getLogger(__name__)
 
@@ -62,18 +63,26 @@ def get_consumer_settings() -> ConsumerSettings:
 
 def sasl_conf() -> dict:
     settings = get_kafka_settings()
-    return {
-        "sasl.mechanism": settings.sasl_mechanism,
+    conf = {
         "bootstrap.servers": settings.bootstrap_server,
         "security.protocol": settings.security_protocol,
-        "sasl.username": settings.api_key,
-        "sasl.password": settings.api_secret_key,
     }
+    # Only add SASL credentials when using SASL-based protocols
+    if "SASL" in settings.security_protocol.upper():
+        conf.update({
+            "sasl.mechanism": settings.sasl_mechanism,
+            "sasl.username": settings.api_key,
+            "sasl.password": settings.api_secret_key,
+        })
+    return conf
 
 
 def schema_config() -> dict:
     settings = get_kafka_settings()
-    return {
-        "url": settings.endpoint_schema_url,
-        "basic.auth.user.info": f"{settings.schema_registry_api_key}:{settings.schema_registry_api_secret}",
-    }
+    conf = {"url": settings.endpoint_schema_url}
+    # Only add auth when credentials are real (not placeholder "local")
+    if settings.schema_registry_api_key and settings.schema_registry_api_key != "local":
+        conf["basic.auth.user.info"] = (
+            f"{settings.schema_registry_api_key}:{settings.schema_registry_api_secret}"
+        )
+    return conf
