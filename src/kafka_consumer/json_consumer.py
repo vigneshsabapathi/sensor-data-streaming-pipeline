@@ -1,49 +1,88 @@
-import argparse
+import logging
 
 from confluent_kafka import Consumer
 from confluent_kafka.serialization import SerializationContext, MessageField
 from confluent_kafka.schema_registry.json_schema import JSONDeserializer
+
 from src.entity.generic import Generic
-from src.kafka_config import sasl_conf
+from src.kafka_config import sasl_conf, get_consumer_settings, get_mongo_settings
 from src.database.mongodb import MongodbOperation
 
+logger = logging.getLogger(__name__)
 
 
+def consume_topic(topic: str, file_path: str, collection_name: str | None = None):
+    """Consume messages from a Kafka topic and insert into MongoDB.
 
-def consumer_using_sample_file(topic,file_path):
+    Args:
+        topic: Kafka topic to consume from.
+        file_path: CSV file path used to derive the JSON schema.
+        collection_name: MongoDB collection name. Defaults to the topic name.
+    """
+    consumer_settings = get_consumer_settings()
+    mongo_settings = get_mongo_settings()
+    collection_name = collection_name or topic
+
     schema_str = Generic.get_schema_to_produce_consume_data(file_path=file_path)
-    json_deserializer = JSONDeserializer(schema_str,
-                                         from_dict=Generic.dict_to_object)
+    json_deserializer = JSONDeserializer(schema_str, from_dict=Generic.dict_to_object)
 
     consumer_conf = sasl_conf()
     consumer_conf.update({
-        'group.id': 'group1',
-        'auto.offset.reset': "earliest"})
+        "group.id": consumer_settings.consumer_group_id,
+        "auto.offset.reset": consumer_settings.auto_offset_reset,
+    })
 
     consumer = Consumer(consumer_conf)
     consumer.subscribe([topic])
 
-    mongodb = MongodbOperation()
+    mongodb = MongodbOperation(
+        db_url=mongo_settings.mongo_db_url,
+        db_name=mongo_settings.mongo_db_name,
+    )
+
     records = []
-    x = 0
-    while True:
-        try:
-            # SIGINT can't be handled when polling, limit timeout to 1 second.
+    record_count = 0
+    batch_size = consumer_settings.consumer_batch_size
+
+    try:
+        while True:
             msg = consumer.poll(1.0)
             if msg is None:
                 continue
 
-            record: Generic = json_deserializer(msg.value(), SerializationContext(msg.topic(), MessageField.VALUE))
+            if msg.error():
+                logger.error("Consumer error: %s", msg.error())
+                continue
 
-            # mongodb.insert(collection_name="car",record=car.record)
+            record: Generic = json_deserializer(
+                msg.value(),
+                SerializationContext(msg.topic(), MessageField.VALUE),
+            )
 
             if record is not None:
                 records.append(record.to_dict())
-                if x % 5000 == 0:
-                    mongodb.insert_many(collection_name="car", records=records)
-                    records = []
-            x = x + 1
-        except KeyboardInterrupt:
-            break
+                record_count += 1
 
-    consumer.close()
+                if len(records) >= batch_size:
+                    _flush_records(mongodb, collection_name, records)
+                    records = []
+
+    except KeyboardInterrupt:
+        logger.info("Consumer interrupted by user after %d records", record_count)
+    finally:
+        # Flush any remaining records before shutdown
+        if records:
+            _flush_records(mongodb, collection_name, records)
+        consumer.close()
+        mongodb.close()
+        logger.info("Consumer shut down cleanly. Total records processed: %d", record_count)
+
+
+def _flush_records(mongodb: MongodbOperation, collection_name: str, records: list):
+    """Insert a batch of records into MongoDB."""
+    try:
+        mongodb.insert_many(collection_name=collection_name, records=records)
+        logger.info("Flushed %d records to MongoDB collection '%s'", len(records), collection_name)
+    except Exception:
+        logger.exception("Failed to insert %d records into '%s'", len(records), collection_name)
+        raise

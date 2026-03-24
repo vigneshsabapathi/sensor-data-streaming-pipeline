@@ -1,8 +1,12 @@
-.env/*
-.idea
+.env
+.env.*
+!.env.example
+.idea/
 venv/
-*.egg-info
-logs/*
+*.egg-info/
+logs/
 *.log
 *.pyc
+__pycache__/
 Credential.md
+.ipynb_checkpoints/

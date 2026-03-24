@@ -5,7 +5,7 @@ from typing import List
 PROJECT_NAME="kafka"
 VERSION="0.0.3"
 AUTHOR="Avnish Yadav"
-DESRCIPTION="This is a sample project for kafka producer and consumer"
+DESCRIPTION="ML data pipeline: CSV to Kafka to MongoDB"
 
 REQUIREMENT_FILE_NAME="requirements.txt"
 
@@ -32,7 +32,7 @@ setup(
 name=PROJECT_NAME,
 version=VERSION,
 author=AUTHOR,
-description=DESRCIPTION,
+description=DESCRIPTION,
 packages=find_packages(), 
 install_requires=get_requirements_list()
 )
