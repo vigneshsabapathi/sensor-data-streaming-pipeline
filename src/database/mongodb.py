@@ -9,7 +9,11 @@ logger = logging.getLogger(__name__)
 class MongodbOperation:
 
     def __init__(self, db_url: str, db_name: str = "ineuron") -> None:
-        self.client = pymongo.MongoClient(db_url, tlsCAFile=certifi.where())
+        # Only use TLS for Atlas/SRV connections; local MongoDB doesn't need it
+        kwargs = {}
+        if "+srv" in db_url or "ssl=true" in db_url.lower():
+            kwargs["tlsCAFile"] = certifi.where()
+        self.client = pymongo.MongoClient(db_url, **kwargs)
         self.db_name = db_name
 
     def insert_many(self, collection_name: str, records: list):

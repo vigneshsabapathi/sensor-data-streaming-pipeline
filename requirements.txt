@@ -1,4 +1,4 @@
-confluent-kafka>=2.3.0
+confluent-kafka[schema-registry,json]>=2.3.0
 pandas>=2.0.0
 pymongo[srv]>=4.6.0
 dnspython>=2.4.0
