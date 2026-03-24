@@ -42,7 +42,9 @@ def produce_data_from_file(
     if schema_registry_client is None:
         schema_registry_client = SchemaRegistryClient(schema_config())
     if producer is None:
-        producer = Producer(sasl_conf())
+        producer_conf = sasl_conf()
+        producer_conf["enable.idempotence"] = True  # Exactly-once per partition
+        producer = Producer(producer_conf)
 
     string_serializer = StringSerializer("utf_8")
     json_serializer = JSONSerializer(schema_str, schema_registry_client, record_to_dict)
